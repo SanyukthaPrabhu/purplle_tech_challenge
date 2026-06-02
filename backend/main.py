@@ -4,6 +4,7 @@ from backend.config import settings
 from backend.routers import events, metrics, funnel, heatmap, anomalies, health
 from backend.middleware.logging import StructuredLoggingMiddleware
 from backend.websocket.manager import manager
+from fastapi.staticfiles import StaticFiles
 import logging
 import asyncio
 
@@ -35,6 +36,9 @@ app.include_router(funnel.router)
 app.include_router(heatmap.router)
 app.include_router(anomalies.router)
 app.include_router(health.router)
+
+# Mount dashboard UI static files
+app.mount("/dashboard", StaticFiles(directory="dashboard", html=True), name="dashboard")
 
 @app.websocket("/ws/stores/{id}/live")
 async def websocket_endpoint(websocket: WebSocket, id: str):

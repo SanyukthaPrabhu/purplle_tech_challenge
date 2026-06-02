@@ -1155,8 +1155,12 @@
         setInterval(updateSysStats, 1000);
 
         const storeId = "550e8400-e29b-41d4-a716-446655440000";
-        const wsUrl = `ws://127.0.0.1:8000/ws/stores/${storeId}/live`;
-        const httpUrl = `http://127.0.0.1:8000/stores/${storeId}`;
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const wsProtocol = protocol === "https:" ? "wss:" : "ws:";
+        
+        const wsUrl = `${wsProtocol}//${host}/ws/stores/${storeId}/live`;
+        const httpUrl = `${protocol}//${host}/stores/${storeId}`;
 
         const statusDot = document.getElementById("status-dot");
         const statusText = document.getElementById("status-text");
