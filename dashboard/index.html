@@ -1156,11 +1156,16 @@
 
         const storeId = "550e8400-e29b-41d4-a716-446655440000";
         const protocol = window.location.protocol;
-        const host = window.location.host;
         const wsProtocol = protocol === "https:" ? "wss:" : "ws:";
         
-        const wsUrl = `${wsProtocol}//${host}/ws/stores/${storeId}/live`;
-        const httpUrl = `${protocol}//${host}/stores/${storeId}`;
+        // Determine backend host (map port 3000 to 8000 for Docker Compose or local server)
+        let backendHost = window.location.host;
+        if (backendHost.includes(":3000")) {
+            backendHost = backendHost.replace(":3000", ":8000");
+        }
+        
+        const wsUrl = `${wsProtocol}//${backendHost}/ws/stores/${storeId}/live`;
+        const httpUrl = `${protocol}//${backendHost}/stores/${storeId}`;
 
         const statusDot = document.getElementById("status-dot");
         const statusText = document.getElementById("status-text");
