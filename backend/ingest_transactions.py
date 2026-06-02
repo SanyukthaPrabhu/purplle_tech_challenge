@@ -7,7 +7,9 @@ from sqlalchemy.future import select
 from backend.config import settings
 from backend.models import Transaction, Store
 
-CSV_PATH = r"c:\Users\sriva\OneDrive\Desktop\Purple task\Brigade_Bangalore_10_April_26 (1)bc6219c.csv"
+import os
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CSV_PATH = os.path.join(base_dir, "Brigade_Bangalore_10_April_26 (1)bc6219c.csv")
 STORE_UUID = uuid.UUID("550e8400-e29b-41d4-a716-446655440000")
 
 async def ingest_transactions():

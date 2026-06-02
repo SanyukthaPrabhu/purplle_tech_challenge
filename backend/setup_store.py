@@ -37,7 +37,9 @@ async def setup():
             print("Store already exists.")
 
         # Load zones from store_layout.json
-        layout_path = r"c:\Users\sriva\OneDrive\Desktop\Purple task\detection\store_layout.json"
+        import os
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        layout_path = os.path.join(base_dir, "detection", "store_layout.json")
         try:
             with open(layout_path, "r") as f:
                 layout = json.load(f)
