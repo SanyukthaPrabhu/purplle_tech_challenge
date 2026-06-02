@@ -22,7 +22,7 @@ def main():
     
     # Map camera details
     settings.camera_id = f"cam0{args.cam}"
-    settings.video_source = f"C:\\Users\\sriva\\OneDrive\\Desktop\\Purple task\\CCTV Footage\\CAM {args.cam}.mp4"
+    settings.video_source = os.path.abspath(os.path.join(os.path.dirname(__file__), "CCTV Footage", f"CAM {args.cam}.mp4"))
     settings.zone_config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "detection", "store_layout.json"))
     settings.debug_display = args.display
     
