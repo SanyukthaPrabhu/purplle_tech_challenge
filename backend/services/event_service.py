@@ -61,12 +61,15 @@ async def ingest_event_db(db: AsyncSession, req: EventIngestRequest) -> tuple[st
             visitor_id=req.visitor_id,
             camera_id=req.camera_id,
             session_hash=session_hash,
-            entry_time=req.timestamp if req.event_type == "ENTRY" else None,
+            entry_time=req.timestamp, # Default to the timestamp of the first event we see
             reentry_count=0
         )
         db.add(session)
         await db.flush()
     else:
+        if not session.entry_time:
+            session.entry_time = req.timestamp
+
         if req.event_type == "ENTRY" and not session.entry_time:
             session.entry_time = req.timestamp
         elif req.event_type == "EXIT":
