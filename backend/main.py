@@ -37,8 +37,15 @@ app.include_router(heatmap.router)
 app.include_router(anomalies.router)
 app.include_router(health.router)
 
-# Mount dashboard UI static files
-app.mount("/dashboard", StaticFiles(directory="dashboard", html=True), name="dashboard")
+# Mount dashboard UI static files conditionally to prevent crashes when folder isn't in context
+import os
+dashboard_path = "dashboard"
+if os.path.exists(dashboard_path):
+    app.mount("/dashboard", StaticFiles(directory=dashboard_path, html=True), name="dashboard")
+elif os.path.exists("../dashboard"):
+    app.mount("/dashboard", StaticFiles(directory="../dashboard", html=True), name="dashboard")
+else:
+    logger.warning("Dashboard directory not found. Skipping static file mount.")
 
 @app.websocket("/ws/stores/{id}/live")
 async def websocket_endpoint(websocket: WebSocket, id: str):

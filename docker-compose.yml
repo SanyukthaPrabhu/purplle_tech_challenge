@@ -31,6 +31,8 @@ services:
       SECRET_KEY: retail_jwt_signing_key_secret_2026
       PROJECT_NAME: "RetailIQ Analytics API"
       LOG_LEVEL: "INFO"
+    volumes:
+      - ./dashboard:/app/dashboard:ro
     depends_on:
       postgres:
         condition: service_healthy
