@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: retail-postgres
+    environment:
+      POSTGRES_DB: retail_analytics
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: analytics_secure_password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics -d retail_analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: retail-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://analytics:analytics_secure_password123@postgres:5432/retail_analytics
+      SECRET_KEY: retail_jwt_signing_key_secret_2026
+      PROJECT_NAME: "RetailIQ Analytics API"
+      LOG_LEVEL: "INFO"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dashboard:
+    image: nginx:alpine
+    container_name: retail-dashboard
+    ports:
+      - "3000:80"
+    volumes:
+      - ./dashboard:/usr/share/nginx/html:ro
+
+volumes:
+  pg_data:

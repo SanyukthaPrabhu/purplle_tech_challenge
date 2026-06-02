@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailIQ — Real-Time Store Analytics</title>
+    <!-- Modern Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN for beautiful visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0c10;
+            --bg-secondary: #131722;
+            --bg-card: rgba(30, 35, 48, 0.4);
+            --accent-primary: #7c3aed;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ── */
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--accent-primary), #a855f7);
+            color: #fff;
+            font-weight: 700;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .logo-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-danger);
+            box-shadow: 0 0 8px var(--accent-danger);
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.connected {
+            background-color: var(--accent-success);
+            box-shadow: 0 0 8px var(--accent-success);
+        }
+
+        /* ── Main Layout ── */
+        .container {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        /* ── KPIs Card Group ── */
+        .kpi-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 1rem 0 0.5rem 0;
+            color: #fff;
+        }
+
+        .kpi-footer {
+            font-size: 0.8rem;
+            color: var(--accent-success);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .kpi-footer.negative {
+            color: var(--accent-danger);
+        }
+
+        /* ── Charts Grid ── */
+        .chart-box {
+            grid-column: span 2;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-header {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-container {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ── Feed & Queue Panel ── */
+        .feed-box {
+            grid-column: span 1;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            max-height: 450px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feed-header {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .feed-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            padding-right: 0.5rem;
+        }
+
+        .feed-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .feed-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .feed-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.8rem;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        .feed-item-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+
+        .feed-tag {
+            font-size: 0.75rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .tag-entry { background: rgba(16, 185, 129, 0.15); color: var(--accent-success); }
+        .tag-exit { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+        .tag-dwell { background: rgba(124, 58, 237, 0.15); color: #a855f7; }
+        .tag-anomaly { background: rgba(245, 158, 11, 0.15); color: var(--accent-warning); }
+
+        /* ── Heatmap view ── */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            width: 100%;
+            height: 250px;
+        }
+
+        .heatmap-cell {
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .chart-box {
+                grid-column: span 2;
+            }
+            .feed-box {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .chart-box, .feed-box {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-section">
+            <span class="logo-badge">LIVE</span>
+            <span class="logo-title">RetailIQ Analytics Portal</span>
+        </div>
+        <div class="connection-status">
+            <div id="status-dot" class="status-dot"></div>
+            <span id="status-text">Connecting Server...</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- ── KPI CARD 1 ── -->
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span>Total Visitors</span>
+                <span>👥</span>
+            </div>
+            <div class="kpi-value" id="kpi-visitors">0</div>
+            <div class="kpi-footer">
+                <span>▲ 12.4%</span> vs yesterday
+            </div>
+        </div>
+
+        <!-- ── KPI CARD 2 ── -->
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span>Conversion Rate</span>
+                <span>💰</span>
+            </div>
+            <div class="kpi-value" id="kpi-conversion">0.0%</div>
+            <div class="kpi-footer">
+                <span>▲ 2.1%</span> vs yesterday
+            </div>
+        </div>
+
+        <!-- ── KPI CARD 3 ── -->
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span>Avg Dwell Time</span>
+                <span>⏱</span>
+            </div>
+            <div class="kpi-value" id="kpi-dwell">0m 0s</div>
+            <div class="kpi-footer">
+                <span>▲ 45s</span> vs yesterday
+            </div>
+        </div>
+
+        <!-- ── KPI CARD 4 ── -->
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <span>Queue Depth</span>
+                <span>🧾</span>
+            </div>
+            <div class="kpi-value" id="kpi-queue">0</div>
+            <div class="kpi-footer negative" id="kpi-queue-status">
+                <span>Normal Operations</span>
+            </div>
+        </div>
+
+        <!-- ── CHART 1: Funnel ── -->
+        <div class="chart-box">
+            <div class="chart-header">
+                <span>Store Visitor Conversion Funnel</span>
+                <span style="color: var(--text-muted); font-size: 0.8rem;">Last 24h</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="funnelChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ── CHART 2: Zone Density Heatmap ── -->
+        <div class="chart-box">
+            <div class="chart-header">
+                <span>Floor Plan Density Grid</span>
+                <span style="color: var(--text-muted); font-size: 0.8rem;">Activity Matrix</span>
+            </div>
+            <div class="heatmap-grid" id="heatmapGrid">
+                <!-- Grid Cells populated by JS -->
+            </div>
+        </div>
+
+        <!-- ── FEED: Live Events Feed ── -->
+        <div class="feed-box">
+            <div class="feed-header">
+                <span>Live Operations Stream</span>
+                <span style="background: rgba(124, 58, 237, 0.2); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Real-Time</span>
+            </div>
+            <div class="feed-list" id="eventStream">
+                <!-- Events Streamed Here -->
+                <div class="feed-item">
+                    <div class="feed-item-header">
+                        <span>Portal Initialized</span>
+                        <span class="feed-tag tag-dwell">Sys</span>
+                    </div>
+                    <div>Waiting for real-time WebSocket connection to establish...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── FEED: Anomalies Feed ── -->
+        <div class="feed-box">
+            <div class="feed-header">
+                <span>Active Store Anomalies</span>
+                <span style="background: rgba(239, 68, 68, 0.2); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--accent-danger);">Alerts</span>
+            </div>
+            <div class="feed-list" id="anomalyStream">
+                <div class="feed-item">
+                    <div class="feed-item-header">
+                        <span>System Check Clean</span>
+                        <span class="feed-tag tag-entry">OK</span>
+                    </div>
+                    <div>No anomalies currently reported on the sales floor.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Init parameters
+        const storeId = "550e8400-e29b-41d4-a716-446655440000";
+        const wsUrl = `ws://localhost:8000/ws/stores/${storeId}/live`;
+        const httpUrl = `http://localhost:8000/stores/${storeId}`;
+
+        // Elements
+        const statusDot = document.getElementById("status-dot");
+        const statusText = document.getElementById("status-text");
+        const eventStream = document.getElementById("eventStream");
+        const anomalyStream = document.getElementById("anomalyStream");
+        
+        // Charts
+        let funnelChartObj = null;
+
+        // Initialize Heatmap
+        function buildHeatmap() {
+            const grid = document.getElementById("heatmapGrid");
+            grid.innerHTML = "";
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement("div");
+                cell.className = "heatmap-cell";
+                cell.id = `cell-${i}`;
+                cell.textContent = "0";
+                grid.appendChild(cell);
+            }
+        }
+        buildHeatmap();
+
+        // Update Heatmap colors based on dummy/live grid updates
+        function updateHeatmap(matrix) {
+            let idx = 0;
+            const flat = matrix.flat();
+            for (let i = 0; i < Math.min(flat.length, 25); i++) {
+                const val = flat[i];
+                const cell = document.getElementById(`cell-${i}`);
+                if (cell) {
+                    cell.textContent = val;
+                    // Shade color based on intensity
+                    if (val > 50) {
+                        cell.style.backgroundColor = "rgba(239, 68, 68, 0.6)"; // Red
+                        cell.style.color = "#fff";
+                    } else if (val > 20) {
+                        cell.style.backgroundColor = "rgba(245, 158, 11, 0.5)"; // Yellow
+                        cell.style.color = "#fff";
+                    } else if (val > 5) {
+                        cell.style.backgroundColor = "rgba(16, 185, 129, 0.4)"; // Green
+                        cell.style.color = "#fff";
+                    } else {
+                        cell.style.backgroundColor = "rgba(255, 255, 255, 0.02)";
+                        cell.style.color = "var(--text-muted)";
+                    }
+                }
+            }
+        }
+
+        // Initialize Funnel Chart
+        function initFunnelChart() {
+            const ctx = document.getElementById('funnelChart').getContext('2d');
+            funnelChartObj = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Store Entry', 'Zone Visit', 'Billing Queue', 'Purchase'],
+                    datasets: [{
+                        label: 'Visitors',
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            'rgba(124, 58, 237, 0.6)', // Purple
+                            'rgba(59, 130, 246, 0.6)',  // Blue
+                            'rgba(245, 158, 11, 0.6)',  // Amber
+                            'rgba(16, 185, 129, 0.6)'   // Emerald
+                        ],
+                        borderColor: [
+                            '#7c3aed', '#3b82f6', '#f59e0b', '#10b981'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9ca3af' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+        initFunnelChart();
+
+        // Connect WebSocket
+        function connectWS() {
+            const ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                statusDot.className = "status-dot connected";
+                statusText.textContent = "Server Online";
+                fetchInitialData();
+            };
+
+            ws.onclose = () => {
+                statusDot.className = "status-dot";
+                statusText.textContent = "Server Offline (Reconnecting...)";
+                setTimeout(connectWS, 3000);
+            };
+
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === "event") {
+                    addEventToStream(msg.data);
+                    // Dynamically request fresh KPIs/Funnels on new events to keep UI updated
+                    debounceFetch();
+                } else if (msg.type === "anomaly") {
+                    addAnomalyToStream(msg.data);
+                }
+            };
+        }
+
+        // Debounce requests to prevent flooding the backend
+        let fetchTimeout = null;
+        function debounceFetch() {
+            clearTimeout(fetchTimeout);
+            fetchTimeout = setTimeout(fetchInitialData, 1000);
+        }
+
+        // Fetch metrics via HTTP REST
+        async function fetchInitialData() {
+            try {
+                // KPIs
+                const metricsRes = await fetch(`${httpUrl}/metrics`);
+                if (metricsRes.ok) {
+                    const data = await metricsRes.json();
+                    document.getElementById("kpi-visitors").textContent = data.unique_visitors;
+                    document.getElementById("kpi-conversion").textContent = `${(data.conversion_rate * 100).toFixed(1)}%`;
+                    
+                    const min = Math.floor(data.avg_dwell_sec / 60);
+                    const sec = Math.round(data.avg_dwell_sec % 60);
+                    document.getElementById("kpi-dwell").textContent = `${min}m ${sec}s`;
+                    
+                    document.getElementById("kpi-queue").textContent = data.current_queue_depth;
+                    const queueStatus = document.getElementById("kpi-queue-status");
+                    if (data.current_queue_depth > 8) {
+                        queueStatus.innerHTML = "<span style='color: var(--accent-danger);'>▲ High Congestion Alert</span>";
+                    } else {
+                        queueStatus.innerHTML = "<span style='color: var(--accent-success);'>✓ Normal Operations</span>";
+                    }
+                }
+
+                // Funnel
+                const funnelRes = await fetch(`${httpUrl}/funnel`);
+                if (funnelRes.ok) {
+                    const data = await funnelRes.json();
+                    const counts = data.steps.map(s => s.count);
+                    funnelChartObj.data.datasets[0].data = counts;
+                    funnelChartObj.update();
+                }
+
+                // Heatmap
+                const heatmapRes = await fetch(`${httpUrl}/heatmap`);
+                if (heatmapRes.ok) {
+                    const data = await heatmapRes.json();
+                    if (data.zones && data.zones.length > 0) {
+                        // Aggregate density matrices from all zones to show full store occupancy
+                        const gridResolution = data.grid_resolution || 5;
+                        const combinedMatrix = Array(gridResolution).fill(0).map(() => Array(gridResolution).fill(0));
+                        data.zones.forEach(zone => {
+                            const matrix = zone.density_matrix;
+                            for (let r = 0; r < Math.min(matrix.length, gridResolution); r++) {
+                                for (let c = 0; c < Math.min(matrix[r].length, gridResolution); c++) {
+                                    combinedMatrix[r][c] += matrix[r][c];
+                                }
+                            }
+                        });
+                        updateHeatmap(combinedMatrix);
+                    }
+                }
+
+                // Anomalies
+                const anomalyRes = await fetch(`${httpUrl}/anomalies`);
+                if (anomalyRes.ok) {
+                    const data = await anomalyRes.json();
+                    anomalyStream.innerHTML = "";
+                    if (data.anomalies.length === 0) {
+                        anomalyStream.innerHTML = `
+                            <div class="feed-item">
+                                <div class="feed-item-header">
+                                    <span>System Check Clean</span>
+                                    <span class="feed-tag tag-entry">OK</span>
+                                </div>
+                                <div>No anomalies currently reported on the sales floor.</div>
+                            </div>`;
+                    } else {
+                        data.anomalies.forEach(a => {
+                            addAnomalyToStream({
+                                type: a.type,
+                                severity: a.severity,
+                                description: a.description,
+                                suggested_action: a.suggested_action
+                            });
+                        });
+                    }
+                }
+
+            } catch (e) {
+                console.error("Failed to fetch initial operational data:", e);
+            }
+        }
+
+        // Add event to Stream DOM
+        function addEventToStream(ev) {
+            const item = document.createElement("div");
+            item.className = "feed-item";
+            
+            let tagClass = "tag-dwell";
+            if (ev.event_type === "ENTRY") tagClass = "tag-entry";
+            if (ev.event_type === "EXIT") tagClass = "tag-exit";
+            if (ev.event_type.includes("QUEUE")) tagClass = "tag-anomaly";
+
+            const timeStr = new Date(ev.timestamp).toLocaleTimeString();
+
+            item.innerHTML = `
+                <div class="feed-item-header">
+                    <span>Visitor ID ${ev.visitor_id} — ${ev.event_type}</span>
+                    <span class="feed-tag ${tagClass}">${ev.event_type.slice(0,5)}</span>
+                </div>
+                <div>Occurred at ${timeStr}. Status processed by analytics pipeline.</div>
+            `;
+            
+            eventStream.insertBefore(item, eventStream.firstChild);
+            if (eventStream.children.length > 20) {
+                eventStream.removeChild(eventStream.lastChild);
+            }
+        }
+
+        // Add anomaly to Stream DOM
+        function addAnomalyToStream(anom) {
+            const item = document.createElement("div");
+            item.className = "feed-item";
+            item.style.borderLeft = `4px solid var(--accent-danger)`;
+
+            item.innerHTML = `
+                <div class="feed-item-header" style="color: var(--accent-danger)">
+                    <span>⚠ ${anom.type} [${anom.severity}]</span>
+                    <span class="feed-tag tag-exit">Alert</span>
+                </div>
+                <div style="font-weight: 500; margin-top: 0.2rem;">${anom.description}</div>
+                <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.2rem;">Action: ${anom.suggested_action}</div>
+            `;
+            
+            anomalyStream.insertBefore(item, anomalyStream.firstChild);
+            if (anomalyStream.children.length > 10) {
+                anomalyStream.removeChild(anomalyStream.lastChild);
+            }
+        }
+
+        // Start connection
+        connectWS();
+
+    </script>
+</body>
+</html>

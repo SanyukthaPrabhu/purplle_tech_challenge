@@ -1,0 +1,22 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Databases
+retail_analytics.db
+*.db
+*.sqlite3
+
+# Model weights
+yolov8n.pt
+*.pt
+
+# Media and logs
+CCTV Footage/
+*.mp4
+*.log
+
+# Git / temp files
+diffstat.txt
