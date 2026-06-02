@@ -65,7 +65,8 @@ async def calculate_heatmap(db: AsyncSession, store_id: uuid.UUID, from_time: da
                 Event.timestamp <= to_time
             )
         )
-        avg_dwell = float((dwell_res.scalar() or 0.0) / 1000.0)
+        val = dwell_res.scalar()
+        avg_dwell = float(val) / 1000.0 if val is not None else 0.0
 
         heatmap_zones.append(ZoneHeatmapData(
             zone_id=zone.id,
