@@ -89,10 +89,10 @@ class ByteTracker:
         """Initialize ByteTrack backend (supervision preferred, fallback to simple)."""
         try:
             import supervision as sv
-            self._tracker = sv.ByteTracker(
-                track_thresh=self.track_thresh,
-                track_buffer=self.track_buffer,
-                match_thresh=self.match_thresh,
+            self._tracker = sv.ByteTrack(
+                track_activation_threshold=self.track_thresh,
+                lost_track_buffer=self.track_buffer,
+                minimum_matching_threshold=self.match_thresh,
                 frame_rate=self.frame_rate,
             )
             self._use_supervision = True
