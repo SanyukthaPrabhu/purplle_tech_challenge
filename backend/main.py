@@ -5,6 +5,7 @@ from backend.routers import events, metrics, funnel, heatmap, anomalies, health
 from backend.middleware.logging import StructuredLoggingMiddleware
 from backend.websocket.manager import manager
 import logging
+import asyncio
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("backend.main")
@@ -40,9 +41,15 @@ async def websocket_endpoint(websocket: WebSocket, id: str):
     await manager.connect(websocket, id)
     try:
         while True:
-            # Keep-alive loop
-            data = await websocket.receive_text()
-            # Echo or process incoming commands if needed
+            try:
+                # Wait briefly for incoming client message
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=20.0)
+            except asyncio.TimeoutError:
+                # Send a ping every 20s to keep connection alive in browser
+                try:
+                    await websocket.send_json({"type": "ping"})
+                except Exception:
+                    break
     except WebSocketDisconnect:
         manager.disconnect(websocket, id)
     except Exception as e:
