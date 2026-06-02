@@ -1,3 +1,4 @@
+
 # Python cache files
 __pycache__/
 *.py[cod]
@@ -10,8 +11,8 @@ retail_analytics.db
 *.sqlite3
 
 # Model weights
-yolov8n.pt
-*.pt
+# yolov8n.pt
+# *.pt
 
 # Media and logs
 CCTV Footage/
