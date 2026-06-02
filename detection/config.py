@@ -57,7 +57,7 @@ class DetectionConfig(BaseSettings):
 
     # ── Event Emitter ────────────────────────────────────────────────────────
     backend_url: str = "http://localhost:8000"
-    emit_batch_size: int = 10                  # events per POST request
+    emit_batch_size: int = 1                  # events per POST request
     emit_timeout_sec: float = 5.0
     emit_retry_count: int = 3
     emit_retry_delay_sec: float = 1.0

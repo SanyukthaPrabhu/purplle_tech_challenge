@@ -27,7 +27,7 @@ def main():
     settings.debug_display = args.display
     
     # Set backend URL
-    settings.backend_url = "http://localhost:8000"
+    settings.backend_url = "http://127.0.0.1:8000"
     
     print("=" * 60)
     print(f"Starting RetailIQ Pipeline")

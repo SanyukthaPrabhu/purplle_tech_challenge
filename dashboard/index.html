@@ -1,302 +1,805 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RetailIQ — Real-Time Store Analytics</title>
-    <!-- Modern Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-    <!-- Chart.js CDN for beautiful visualizations -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-primary: #06070a;
-            --bg-secondary: rgba(13, 16, 27, 0.6);
-            --bg-card: rgba(22, 28, 45, 0.45);
-            --accent-primary: hsl(263, 80%, 62%);
-            --accent-primary-glow: rgba(124, 58, 237, 0.15);
-            --accent-success: hsl(158, 80%, 40%);
-            --accent-warning: hsl(38, 92%, 50%);
-            --accent-danger: hsl(358, 80%, 60%);
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --border-color: rgba(255, 255, 255, 0.05);
-            --border-glow: rgba(124, 58, 237, 0.1);
-            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-            --glass-blur: 24px;
+            --bg-void: #070912;
+            --bg-card: rgba(14, 18, 38, 0.82);
+            --bg-card-hover: rgba(20, 26, 54, 0.95);
+            --accent: #00ffc3;
+            --accent-dim: rgba(0, 255, 195, 0.13);
+            --accent-border: rgba(0, 255, 195, 0.35);
+            --accent-glow: rgba(0, 255, 195, 0.22);
+            --violet: #b16cff;
+            --violet-dim: rgba(177, 108, 255, 0.16);
+            --violet-border: rgba(177, 108, 255, 0.35);
+            --violet-glow: rgba(177, 108, 255, 0.2);
+            --amber: #ffb830;
+            --amber-dim: rgba(255, 184, 48, 0.14);
+            --amber-border: rgba(255, 184, 48, 0.35);
+            --amber-glow: rgba(255, 184, 48, 0.2);
+            --danger: #ff4f6d;
+            --danger-dim: rgba(255, 79, 109, 0.14);
+            --danger-border: rgba(255, 79, 109, 0.35);
+            --danger-glow: rgba(255, 79, 109, 0.2);
+            --text-1: #f0f4ff;
+            --text-2: #9aa4be;
+            --text-3: #5a6480;
+            --border: rgba(255, 255, 255, 0.08);
+            --mono: 'DM Mono', monospace;
+            --display: 'Syne', sans-serif;
         }
 
-        * {
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
-            background-color: var(--bg-primary);
-            background-image: 
-                radial-gradient(at 10% 10%, rgba(124, 58, 237, 0.04) 0px, transparent 50%),
-                radial-gradient(at 90% 80%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
-            color: var(--text-main);
+            font-family: var(--display);
+            background: var(--bg-void);
+            color: var(--text-1);
             min-height: 100vh;
             overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
+            background-image:
+                radial-gradient(ellipse 90% 55% at 8% 0%, rgba(0, 255, 195, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse 70% 50% at 92% 5%, rgba(177, 108, 255, 0.12) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255, 79, 109, 0.07) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 35% at 75% 50%, rgba(255, 184, 48, 0.06) 0%, transparent 55%);
         }
 
-        /* ── Header ── */
+        /* scanline */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(transparent, transparent 2px, rgba(0, 255, 195, 0.018) 2px, rgba(0, 255, 195, 0.018) 4px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* grid dots */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+            mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+        }
+
+        /* ── AMBIENT ORBS ── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(90px);
+            z-index: 0;
+            animation: orb-drift 18s ease-in-out infinite alternate;
+        }
+
+        .orb-1 {
+            width: 620px;
+            height: 620px;
+            background: radial-gradient(circle, rgba(0, 255, 195, 0.14) 0%, transparent 70%);
+            top: -20%;
+            left: -12%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(177, 108, 255, 0.16) 0%, transparent 70%);
+            bottom: 5%;
+            right: -8%;
+            animation-delay: -6s;
+        }
+
+        .orb-3 {
+            width: 380px;
+            height: 380px;
+            background: radial-gradient(circle, rgba(255, 79, 109, 0.10) 0%, transparent 70%);
+            top: 45%;
+            left: 40%;
+            animation-delay: -12s;
+        }
+
+        .orb-4 {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(255, 184, 48, 0.10) 0%, transparent 70%);
+            top: 20%;
+            right: 20%;
+            animation-delay: -9s;
+        }
+
+        @keyframes orb-drift {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(25px, -18px) scale(1.07);
+            }
+
+            100% {
+                transform: translate(-18px, 12px) scale(0.94);
+            }
+        }
+
+        /* ── HEADER ── */
         header {
-            background: rgba(10, 12, 19, 0.6);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.2rem 2.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            background: rgba(7, 9, 18, 0.88);
+            backdrop-filter: blur(24px) saturate(1.6);
+            -webkit-backdrop-filter: blur(24px) saturate(1.6);
+            border-bottom: 1px solid rgba(0, 255, 195, 0.12);
+            padding: 0 2.5rem;
+            height: 66px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1.5px;
+            background: linear-gradient(90deg, transparent 0%, var(--accent) 25%, var(--violet) 50%, var(--accent) 75%, transparent 100%);
+            opacity: 0.55;
+            animation: header-stripe 5s ease-in-out infinite alternate;
+        }
+
+        @keyframes header-stripe {
+            0% {
+                opacity: 0.3
+            }
+
+            100% {
+                opacity: 0.75
+            }
         }
 
         .logo-section {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
+            gap: 1rem;
         }
 
         .logo-badge {
-            background: linear-gradient(135deg, var(--accent-primary), #a855f7);
-            color: #fff;
-            font-weight: 700;
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            letter-spacing: 0.05em;
-            box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
-            animation: pulse-badge 2s infinite alternate;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            color: var(--accent);
+            background: rgba(0, 255, 195, 0.1);
+            border: 1px solid var(--accent-border);
+            padding: 0.35rem 0.8rem;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 0 12px var(--accent);
         }
 
-        @keyframes pulse-badge {
-            0% { box-shadow: 0 0 10px rgba(124, 58, 237, 0.3); }
-            100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.6); }
+        .logo-badge::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 255, 195, 0.14) 50%, transparent 100%);
+            animation: shimmer 2.2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%)
+            }
+
+            100% {
+                transform: translateX(100%)
+            }
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .live-dot::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.35;
+            animation: live-ping 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes live-ping {
+
+            75%,
+            100% {
+                transform: scale(2.8);
+                opacity: 0
+            }
         }
 
         .logo-title {
-            font-weight: 700;
-            font-size: 1.3rem;
-            background: linear-gradient(to right, #fff, var(--text-muted));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-1);
+        }
+
+        .logo-title span {
+            color: var(--accent);
+            text-shadow: 0 0 18px rgba(0, 255, 195, 0.5);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .header-time {
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            color: var(--accent);
+            letter-spacing: 0.08em;
+            text-shadow: 0 0 10px rgba(0, 255, 195, 0.4);
         }
 
         .connection-status {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1.2rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            gap: 0.6rem;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            color: var(--text-2);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 0.45rem 1.1rem;
+            border-radius: 40px;
+            transition: all 0.4s ease;
         }
 
         .status-dot {
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
-            background-color: var(--accent-danger);
+            background: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
             position: relative;
-            display: inline-block;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
         }
 
         .status-dot::after {
             content: '';
             position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background: inherit;
+            inset: -2px;
             border-radius: 50%;
-            animation: pulse-ring 1.8s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+            background: inherit;
+            opacity: 0.5;
+            animation: pulse-ring 2s ease-in-out infinite;
         }
 
         .status-dot.connected {
-            background-color: var(--accent-success);
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .connection-status:has(.status-dot.connected) {
+            border-color: var(--accent-border);
+            color: var(--accent);
+            text-shadow: 0 0 8px rgba(0, 255, 195, 0.3);
         }
 
         @keyframes pulse-ring {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { opacity: 0.5; }
-            100% { transform: scale(2.5); opacity: 0; }
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.5
+            }
+
+            50% {
+                transform: scale(2.4);
+                opacity: 0
+            }
         }
 
-        /* ── Main Layout ── */
-        .container {
-            flex: 1;
-            padding: 2rem;
-            max-width: 1600px;
+        /* ── PAGE WRAP ── */
+        .page-wrap {
+            position: relative;
+            z-index: 1;
+            padding: 2rem 2.5rem;
+            max-width: 1700px;
             margin: 0 auto;
             width: 100%;
+        }
+
+        .section-label {
+            font-family: var(--mono);
+            font-size: 0.62rem;
+            letter-spacing: 0.22em;
+            color: var(--accent);
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 255, 195, 0.4);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(0, 255, 195, 0.3) 0%, transparent 80%);
+        }
+
+        /* ── KPI GRID ── */
+        .kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        /* ── KPIs Card Group ── */
         .kpi-card {
             background: var(--bg-card);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 1.6rem;
-            box-shadow: var(--card-shadow);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.5rem;
             position: relative;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: default;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            animation: card-in 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
         }
 
+        .kpi-card:nth-child(1) {
+            animation-delay: 0.05s
+        }
+
+        .kpi-card:nth-child(2) {
+            animation-delay: 0.12s
+        }
+
+        .kpi-card:nth-child(3) {
+            animation-delay: 0.19s
+        }
+
+        .kpi-card:nth-child(4) {
+            animation-delay: 0.26s
+        }
+
+        @keyframes card-in {
+            from {
+                opacity: 0;
+                transform: translateY(22px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* inner glow corner */
         .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: -40%;
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            opacity: 0.18;
+            transition: opacity 0.5s ease;
+            filter: blur(40px);
+        }
+
+        .kpi-card.type-green::before {
+            background: var(--accent);
+        }
+
+        .kpi-card.type-purple::before {
+            background: var(--violet);
+        }
+
+        .kpi-card.type-amber::before {
+            background: var(--amber);
+        }
+
+        .kpi-card.type-danger::before {
+            background: var(--danger);
+        }
+
+        .kpi-card:hover::before {
+            opacity: 0.32;
+        }
+
+        /* top stripe */
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 1.5rem;
+            right: 1.5rem;
+            height: 2px;
+            border-radius: 2px;
+            transition: all 0.5s ease;
+        }
+
+        .kpi-card.type-green::after {
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .kpi-card.type-purple::after {
+            background: linear-gradient(90deg, transparent, var(--violet), transparent);
+            box-shadow: 0 0 12px var(--violet-glow);
+        }
+
+        .kpi-card.type-amber::after {
+            background: linear-gradient(90deg, transparent, var(--amber), transparent);
+            box-shadow: 0 0 12px var(--amber-glow);
+        }
+
+        .kpi-card.type-danger::after {
+            background: linear-gradient(90deg, transparent, var(--danger), transparent);
+            box-shadow: 0 0 12px var(--danger-glow);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px) scale(1.015);
+            background: var(--bg-card-hover);
+        }
+
+        .kpi-card.type-green:hover {
+            border-color: var(--accent-border);
+            box-shadow: 0 22px 55px rgba(0, 255, 195, 0.16), 0 0 0 1px rgba(0, 255, 195, 0.12);
+        }
+
+        .kpi-card.type-purple:hover {
+            border-color: var(--violet-border);
+            box-shadow: 0 22px 55px rgba(177, 108, 255, 0.18), 0 0 0 1px rgba(177, 108, 255, 0.14);
+        }
+
+        .kpi-card.type-amber:hover {
+            border-color: var(--amber-border);
+            box-shadow: 0 22px 55px rgba(255, 184, 48, 0.14), 0 0 0 1px rgba(255, 184, 48, 0.12);
+        }
+
+        .kpi-card.type-danger:hover {
+            border-color: var(--danger-border);
+            box-shadow: 0 22px 55px rgba(255, 79, 109, 0.14), 0 0 0 1px rgba(255, 79, 109, 0.12);
+        }
+
+        .kpi-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        .kpi-card.type-green .kpi-icon {
+            background: rgba(0, 255, 195, 0.15);
+            border: 1px solid rgba(0, 255, 195, 0.3);
+            box-shadow: 0 0 16px rgba(0, 255, 195, 0.15);
+        }
+
+        .kpi-card.type-purple .kpi-icon {
+            background: rgba(177, 108, 255, 0.18);
+            border: 1px solid rgba(177, 108, 255, 0.3);
+            box-shadow: 0 0 16px rgba(177, 108, 255, 0.15);
+        }
+
+        .kpi-card.type-amber .kpi-icon {
+            background: rgba(255, 184, 48, 0.15);
+            border: 1px solid rgba(255, 184, 48, 0.3);
+            box-shadow: 0 0 16px rgba(255, 184, 48, 0.12);
+        }
+
+        .kpi-card.type-danger .kpi-icon {
+            background: rgba(255, 79, 109, 0.15);
+            border: 1px solid rgba(255, 79, 109, 0.3);
+            box-shadow: 0 0 16px rgba(255, 79, 109, 0.12);
+        }
+
+        .kpi-label {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            font-weight: 400;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-card.type-green .kpi-label {
+            color: rgba(0, 255, 195, 0.6);
+        }
+
+        .kpi-card.type-purple .kpi-label {
+            color: rgba(177, 108, 255, 0.6);
+        }
+
+        .kpi-card.type-amber .kpi-label {
+            color: rgba(255, 184, 48, 0.6);
+        }
+
+        .kpi-card.type-danger .kpi-label {
+            color: rgba(255, 79, 109, 0.6);
+        }
+
+        .kpi-value {
+            font-size: 2.7rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            margin-bottom: 0.9rem;
+            color: #fff;
+        }
+
+        .kpi-card.type-green .kpi-value {
+            text-shadow: 0 0 30px rgba(0, 255, 195, 0.35);
+        }
+
+        .kpi-card.type-purple .kpi-value {
+            text-shadow: 0 0 30px rgba(177, 108, 255, 0.3);
+        }
+
+        .kpi-card.type-amber .kpi-value {
+            text-shadow: 0 0 30px rgba(255, 184, 48, 0.3);
+        }
+
+        .kpi-card.type-danger .kpi-value {
+            text-shadow: 0 0 30px rgba(255, 79, 109, 0.3);
+        }
+
+        .kpi-trend {
+            font-family: var(--mono);
+            font-size: 0.73rem;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .kpi-trend.up {
+            color: var(--accent);
+            text-shadow: 0 0 8px rgba(0, 255, 195, 0.5);
+        }
+
+        .kpi-trend.down {
+            color: var(--danger);
+            text-shadow: 0 0 8px rgba(255, 79, 109, 0.4);
+        }
+
+        .kpi-trend.neutral {
+            color: var(--text-3);
+        }
+
+        .trend-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            border-radius: 0 0 18px 18px;
+        }
+
+        .kpi-card.type-green .trend-bar {
+            background: linear-gradient(90deg, transparent, var(--accent) 60%);
+            box-shadow: 0 0 10px var(--accent-glow);
+            opacity: 0.7;
+        }
+
+        .kpi-card.type-purple .trend-bar {
+            background: linear-gradient(90deg, transparent, var(--violet) 60%);
+            box-shadow: 0 0 10px var(--violet-glow);
+            opacity: 0.7;
+        }
+
+        .kpi-card.type-amber .trend-bar {
+            background: linear-gradient(90deg, transparent, var(--amber) 60%);
+            box-shadow: 0 0 10px var(--amber-glow);
+            opacity: 0.7;
+        }
+
+        .kpi-card.type-danger .trend-bar {
+            background: linear-gradient(90deg, transparent, var(--danger) 60%);
+            box-shadow: 0 0 10px var(--danger-glow);
+            opacity: 0.7;
+        }
+
+        /* ── GRIDS ── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 370px;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* ── PANEL ── */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+            animation: card-in 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+        }
+
+        .panel:hover {
+            border-color: rgba(0, 255, 195, 0.18);
+            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 255, 195, 0.07);
+        }
+
+        .panel::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(130deg, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
-            pointer-events: none;
+            right: 0;
+            height: 1.5px;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 255, 195, 0.2) 50%, transparent 100%);
         }
 
-        .kpi-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(124, 58, 237, 0.35);
-            box-shadow: 0 12px 40px 0 rgba(124, 58, 237, 0.12), var(--card-shadow);
-        }
-
-        .kpi-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .kpi-value {
-            font-size: 2.4rem;
-            font-weight: 700;
-            margin: 1.2rem 0 0.6rem 0;
-            color: #fff;
-            letter-spacing: -0.02em;
-        }
-
-        .kpi-footer {
-            font-size: 0.8rem;
-            color: var(--accent-success);
+        .panel-header {
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            justify-content: space-between;
+            margin-bottom: 1.4rem;
+        }
+
+        .panel-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text-1);
+        }
+
+        .panel-badge {
+            font-family: var(--mono);
+            font-size: 0.62rem;
             font-weight: 500;
+            letter-spacing: 0.1em;
+            padding: 0.25rem 0.65rem;
+            border-radius: 4px;
         }
 
-        .kpi-footer.negative {
-            color: var(--accent-danger);
+        .panel-badge.live {
+            background: rgba(0, 255, 195, 0.13);
+            color: var(--accent);
+            border: 1px solid var(--accent-border);
+            text-shadow: 0 0 8px rgba(0, 255, 195, 0.4);
         }
 
-        /* ── Charts Grid ── */
-        .chart-box {
-            grid-column: span 2;
-            background: var(--bg-card);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 1.8rem;
-            box-shadow: var(--card-shadow);
-            min-height: 380px;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        .panel-badge.alert {
+            background: rgba(255, 79, 109, 0.13);
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
         }
 
-        .chart-box:hover {
-            border-color: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.45);
+        .panel-badge.sub {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-2);
+            border: 1px solid var(--border);
         }
 
-        .chart-header {
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            letter-spacing: -0.01em;
-        }
-
-        .chart-container {
+        .chart-wrap {
             position: relative;
-            flex: 1;
             width: 100%;
-            height: 100%;
+            height: 280px;
         }
 
-        /* ── Feed & Queue Panel ── */
-        .feed-box {
-            grid-column: span 1;
-            background: var(--bg-card);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 1.8rem;
-            box-shadow: var(--card-shadow);
-            max-height: 480px;
+        /* ── HEATMAP ── */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            width: 100%;
+            height: 280px;
+        }
+
+        .heatmap-cell {
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 7px;
             display: flex;
-            flex-direction: column;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .feed-box:hover {
-            border-color: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.45);
-        }
-
-        .feed-header {
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin-bottom: 1.2rem;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            letter-spacing: -0.01em;
+            justify-content: center;
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: var(--text-3);
+            transition: all 0.65s cubic-bezier(0.23, 1, 0.32, 1);
+            cursor: crosshair;
         }
 
+        .heatmap-cell:hover {
+            transform: scale(1.12);
+            z-index: 5;
+        }
+
+        @keyframes cell-pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.65
+            }
+        }
+
+        .heatmap-cell.hot {
+            animation: cell-pulse 1.6s ease-in-out infinite;
+        }
+
+        /* ── FEEDS ── */
         .feed-list {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 0.8rem;
-            padding-right: 0.5rem;
+            gap: 0.6rem;
+            max-height: 300px;
+            padding-right: 0.25rem;
         }
 
         .feed-list::-webkit-scrollbar {
-            width: 5px;
+            width: 3px;
         }
 
         .feed-list::-webkit-scrollbar-track {
@@ -304,232 +807,329 @@
         }
 
         .feed-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 3px;
-        }
-
-        .feed-list::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 255, 195, 0.2);
+            border-radius: 2px;
         }
 
         .feed-item {
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 0.9rem 1.1rem;
-            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 11px;
+            padding: 0.8rem 1rem;
+            font-size: 0.8rem;
             display: flex;
             flex-direction: column;
-            gap: 0.4rem;
-            animation: slideInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transition: all 0.2s ease;
+            gap: 0.35rem;
+            animation: feed-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
+            transition: all 0.25s ease;
+        }
+
+        @keyframes feed-in {
+            from {
+                opacity: 0;
+                transform: translateX(-14px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0)
+            }
         }
 
         .feed-item:hover {
-            background: rgba(255, 255, 255, 0.03);
-            border-color: rgba(255, 255, 255, 0.12);
+            background: rgba(0, 255, 195, 0.04);
+            border-color: rgba(0, 255, 195, 0.15);
         }
 
         .feed-item-header {
             display: flex;
+            align-items: center;
             justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .feed-item-title {
+            font-size: 0.78rem;
             font-weight: 600;
+            color: var(--text-1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .feed-tag {
-            font-size: 0.72rem;
-            font-weight: 700;
-            padding: 0.15rem 0.5rem;
-            border-radius: 6px;
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            flex-shrink: 0;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
-        .tag-entry { background: rgba(16, 185, 129, 0.15); color: var(--accent-success); }
-        .tag-exit { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
-        .tag-dwell { background: rgba(124, 58, 237, 0.15); color: #a855f7; }
-        .tag-anomaly { background: rgba(245, 158, 11, 0.15); color: var(--accent-warning); }
-
-        /* ── Heatmap view ── */
-        .heatmap-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.6rem;
-            width: 100%;
-            height: 280px;
+        .tag-entry {
+            background: rgba(0, 255, 195, 0.14);
+            color: var(--accent);
+            border: 1px solid rgba(0, 255, 195, 0.3);
+            text-shadow: 0 0 8px rgba(0, 255, 195, 0.4);
         }
 
-        .heatmap-cell {
-            background-color: rgba(255, 255, 255, 0.015);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
+        .tag-exit {
+            background: rgba(255, 79, 109, 0.13);
+            color: var(--danger);
+            border: 1px solid rgba(255, 79, 109, 0.3);
+        }
+
+        .tag-dwell {
+            background: rgba(177, 108, 255, 0.16);
+            color: var(--violet);
+            border: 1px solid rgba(177, 108, 255, 0.3);
+        }
+
+        .tag-anomaly {
+            background: rgba(255, 184, 48, 0.14);
+            color: var(--amber);
+            border: 1px solid rgba(255, 184, 48, 0.3);
+        }
+
+        .feed-body {
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            color: var(--text-3);
+            line-height: 1.4;
+        }
+
+        .anomaly-item {
+            border-left: 2px solid var(--danger);
+        }
+
+        .anomaly-item .feed-item-title {
+            color: var(--danger);
+        }
+
+        /* ── CORNER MARKS ── */
+        .corner-mark {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+        }
+
+        .corner-mark.tl {
+            top: 10px;
+            left: 10px;
+            border-top: 2px solid var(--accent);
+            border-left: 2px solid var(--accent);
+            border-radius: 2px 0 0 0;
+            opacity: 0.6;
+        }
+
+        .corner-mark.br {
+            bottom: 10px;
+            right: 10px;
+            border-bottom: 2px solid var(--accent);
+            border-right: 2px solid var(--accent);
+            border-radius: 0 0 2px 0;
+            opacity: 0.6;
+        }
+
+        /* ── SYS STATS ROW ── */
+        .sys-row {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        .heatmap-cell:hover {
-            transform: scale(1.05);
-            z-index: 2;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        .sys-row:last-child {
+            border-bottom: none;
         }
 
-        .heatmap-cell.active-glow {
-            animation: pulse-glow 2s infinite ease-in-out;
+        .sys-key {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--text-2);
         }
 
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 5px currentColor; }
-            50% { box-shadow: 0 0 15px currentColor; }
+        .sys-val {
+            font-family: var(--mono);
+            font-size: 0.72rem;
         }
 
-        @keyframes slideInUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 1200px) {
-            .container {
-                grid-template-columns: repeat(2, 1fr);
+        /* ── RESPONSIVE ── */
+        @media (max-width:1400px) {
+            .main-grid {
+                grid-template-columns: 1fr 1fr;
             }
-            .chart-box {
+
+            .main-grid>.panel:last-child {
                 grid-column: span 2;
             }
-            .feed-box {
-                grid-column: span 1;
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        @media (max-width: 768px) {
-            .container {
+        @media (max-width:900px) {
+            .page-wrap {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .main-grid,
+            .bottom-grid {
                 grid-template-columns: 1fr;
             }
-            .chart-box, .feed-box {
+
+            .main-grid>.panel:last-child {
                 grid-column: span 1;
             }
         }
     </style>
 </head>
+
 <body>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
 
     <header>
         <div class="logo-section">
-            <span class="logo-badge">LIVE</span>
-            <span class="logo-title">RetailIQ Analytics Portal</span>
+            <div class="logo-badge">
+                <span class="live-dot"></span>
+                LIVE
+            </div>
+            <span class="logo-title">Retail<span>IQ</span></span>
         </div>
-        <div class="connection-status">
-            <div id="status-dot" class="status-dot"></div>
-            <span id="status-text">Connecting Server...</span>
+        <div class="header-right">
+            <div class="header-time" id="header-clock">--:--:--</div>
+            <div class="connection-status">
+                <div id="status-dot" class="status-dot"></div>
+                <span id="status-text">Connecting...</span>
+            </div>
         </div>
     </header>
 
-    <div class="container">
-        <!-- ── KPI CARD 1 ── -->
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <span>Total Visitors</span>
-                <span>👥</span>
+    <div class="page-wrap">
+
+        <div class="section-label">Performance Overview</div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card type-green">
+                <div class="corner-mark tl"></div>
+                <div class="kpi-icon">👥</div>
+                <div class="kpi-label">Total Visitors</div>
+                <div class="kpi-value" id="kpi-visitors">0</div>
+                <div class="kpi-trend up">▲ 12.4% &nbsp;vs yesterday</div>
+                <div class="trend-bar"></div>
             </div>
-            <div class="kpi-value" id="kpi-visitors">0</div>
-            <div class="kpi-footer">
-                <span>▲ 12.4%</span> vs yesterday
+            <div class="kpi-card type-purple">
+                <div class="kpi-icon">💰</div>
+                <div class="kpi-label">Conversion Rate</div>
+                <div class="kpi-value" id="kpi-conversion">0.0%</div>
+                <div class="kpi-trend up">▲ 2.1% &nbsp;vs yesterday</div>
+                <div class="trend-bar"></div>
+            </div>
+            <div class="kpi-card type-amber">
+                <div class="kpi-icon">⏱</div>
+                <div class="kpi-label">Avg Dwell Time</div>
+                <div class="kpi-value" id="kpi-dwell">0m 0s</div>
+                <div class="kpi-trend up">▲ 45s &nbsp;vs yesterday</div>
+                <div class="trend-bar"></div>
+            </div>
+            <div class="kpi-card type-danger">
+                <div class="corner-mark br"></div>
+                <div class="kpi-icon">🧾</div>
+                <div class="kpi-label">Queue Depth</div>
+                <div class="kpi-value" id="kpi-queue">0</div>
+                <div class="kpi-trend neutral" id="kpi-queue-status">Normal Operations</div>
+                <div class="trend-bar"></div>
             </div>
         </div>
 
-        <!-- ── KPI CARD 2 ── -->
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <span>Conversion Rate</span>
-                <span>💰</span>
-            </div>
-            <div class="kpi-value" id="kpi-conversion">0.0%</div>
-            <div class="kpi-footer">
-                <span>▲ 2.1%</span> vs yesterday
-            </div>
-        </div>
+        <div class="section-label">Analytics</div>
 
-        <!-- ── KPI CARD 3 ── -->
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <span>Avg Dwell Time</span>
-                <span>⏱</span>
+        <div class="main-grid">
+            <div class="panel" style="animation-delay:0.3s">
+                <div class="panel-header">
+                    <span class="panel-title">Visitor Conversion Funnel</span>
+                    <span class="panel-badge sub">Last 24h</span>
+                </div>
+                <div class="chart-wrap"><canvas id="funnelChart"></canvas></div>
             </div>
-            <div class="kpi-value" id="kpi-dwell">0m 0s</div>
-            <div class="kpi-footer">
-                <span>▲ 45s</span> vs yesterday
-            </div>
-        </div>
 
-        <!-- ── KPI CARD 4 ── -->
-        <div class="kpi-card">
-            <div class="kpi-header">
-                <span>Queue Depth</span>
-                <span>🧾</span>
+            <div class="panel" style="animation-delay:0.38s">
+                <div class="panel-header">
+                    <span class="panel-title">Floor Density Matrix</span>
+                    <span class="panel-badge live">Live</span>
+                </div>
+                <div class="heatmap-grid" id="heatmapGrid"></div>
             </div>
-            <div class="kpi-value" id="kpi-queue">0</div>
-            <div class="kpi-footer negative" id="kpi-queue-status">
-                <span>Normal Operations</span>
-            </div>
-        </div>
 
-        <!-- ── CHART 1: Funnel ── -->
-        <div class="chart-box">
-            <div class="chart-header">
-                <span>Store Visitor Conversion Funnel</span>
-                <span style="color: var(--text-muted); font-size: 0.8rem;">Last 24h</span>
-            </div>
-            <div class="chart-container">
-                <canvas id="funnelChart"></canvas>
-            </div>
-        </div>
-
-        <!-- ── CHART 2: Zone Density Heatmap ── -->
-        <div class="chart-box">
-            <div class="chart-header">
-                <span>Floor Plan Density Grid</span>
-                <span style="color: var(--text-muted); font-size: 0.8rem;">Activity Matrix</span>
-            </div>
-            <div class="heatmap-grid" id="heatmapGrid">
-                <!-- Grid Cells populated by JS -->
-            </div>
-        </div>
-
-        <!-- ── FEED: Live Events Feed ── -->
-        <div class="feed-box">
-            <div class="feed-header">
-                <span>Live Operations Stream</span>
-                <span style="background: rgba(124, 58, 237, 0.2); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Real-Time</span>
-            </div>
-            <div class="feed-list" id="eventStream">
-                <!-- Events Streamed Here -->
-                <div class="feed-item">
-                    <div class="feed-item-header">
-                        <span>Portal Initialized</span>
-                        <span class="feed-tag tag-dwell">Sys</span>
+            <div class="panel" style="animation-delay:0.46s; display:flex;flex-direction:column;">
+                <div class="panel-header">
+                    <span class="panel-title">Operations Stream</span>
+                    <span class="panel-badge live">Real-Time</span>
+                </div>
+                <div class="feed-list" id="eventStream">
+                    <div class="feed-item">
+                        <div class="feed-item-header">
+                            <span class="feed-item-title">Portal Initialized</span>
+                            <span class="feed-tag tag-dwell">SYS</span>
+                        </div>
+                        <div class="feed-body">Waiting for WebSocket connection...</div>
                     </div>
-                    <div>Waiting for real-time WebSocket connection to establish...</div>
                 </div>
             </div>
         </div>
 
-        <!-- ── FEED: Anomalies Feed ── -->
-        <div class="feed-box">
-            <div class="feed-header">
-                <span>Active Store Anomalies</span>
-                <span style="background: rgba(239, 68, 68, 0.2); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--accent-danger);">Alerts</span>
-            </div>
-            <div class="feed-list" id="anomalyStream">
-                <div class="feed-item">
-                    <div class="feed-item-header">
-                        <span>System Check Clean</span>
-                        <span class="feed-tag tag-entry">OK</span>
+        <div class="section-label">Anomaly Detection</div>
+
+        <div class="bottom-grid">
+            <div class="panel" style="animation-delay:0.5s;display:flex;flex-direction:column;">
+                <div class="panel-header">
+                    <span class="panel-title">Active Store Anomalies</span>
+                    <span class="panel-badge alert">Alerts</span>
+                </div>
+                <div class="feed-list" id="anomalyStream">
+                    <div class="feed-item">
+                        <div class="feed-item-header">
+                            <span class="feed-item-title">System Check Clean</span>
+                            <span class="feed-tag tag-entry">OK</span>
+                        </div>
+                        <div class="feed-body">No anomalies currently reported on the sales floor.</div>
                     </div>
-                    <div>No anomalies currently reported on the sales floor.</div>
+                </div>
+            </div>
+
+            <div class="panel" style="animation-delay:0.56s;display:flex;flex-direction:column;gap:0.2rem;">
+                <div class="panel-header">
+                    <span class="panel-title">System Status</span>
+                    <span class="panel-badge sub">Health</span>
+                </div>
+                <div class="sys-row">
+                    <span class="sys-key">WebSocket Uptime</span>
+                    <span class="sys-val" id="sys-ws"
+                        style="color:var(--accent);text-shadow:0 0 8px rgba(0,255,195,0.4)">—</span>
+                </div>
+                <div class="sys-row">
+                    <span class="sys-key">Events Processed</span>
+                    <span class="sys-val" id="sys-events" style="color:var(--text-1)">0</span>
+                </div>
+                <div class="sys-row">
+                    <span class="sys-key">Anomalies Flagged</span>
+                    <span class="sys-val" id="sys-anomalies" style="color:var(--danger)">0</span>
+                </div>
+                <div class="sys-row">
+                    <span class="sys-key">Store ID</span>
+                    <span class="sys-val" style="color:var(--text-3);font-size:0.65rem">550e8400...0000</span>
                 </div>
             </div>
         </div>
@@ -537,164 +1137,101 @@
     </div>
 
     <script>
-        // Init parameters
-        const storeId = "550e8400-e29b-41d4-a716-446655440000";
-        const wsUrl = `ws://localhost:8000/ws/stores/${storeId}/live`;
-        const httpUrl = `http://localhost:8000/stores/${storeId}`;
+        // ── CLOCK ──
+        function updateClock() {
+            document.getElementById('header-clock').textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
+        }
+        updateClock(); setInterval(updateClock, 1000);
 
-        // Elements
+        let wsConnectedAt = null, eventsProcessed = 0, anomaliesFlagged = 0;
+
+        function updateSysStats() {
+            if (wsConnectedAt) {
+                const mins = Math.floor((Date.now() - wsConnectedAt) / 60000);
+                const secs = Math.floor(((Date.now() - wsConnectedAt) % 60000) / 1000);
+                document.getElementById('sys-ws').textContent = `${mins}m ${secs}s`;
+            }
+        }
+        setInterval(updateSysStats, 1000);
+
+        const storeId = "550e8400-e29b-41d4-a716-446655440000";
+        const wsUrl = `ws://127.0.0.1:8000/ws/stores/${storeId}/live`;
+        const httpUrl = `http://127.0.0.1:8000/stores/${storeId}`;
+
         const statusDot = document.getElementById("status-dot");
         const statusText = document.getElementById("status-text");
         const eventStream = document.getElementById("eventStream");
         const anomalyStream = document.getElementById("anomalyStream");
-        
-        // Charts & State
+
         let funnelChartObj = null;
-        let lastValues = {
-            "kpi-visitors": 0,
-            "kpi-conversion": 0,
-            "kpi-queue": 0
-        };
+        let lastValues = { "kpi-visitors": 0, "kpi-conversion": 0, "kpi-queue": 0 };
         let lastDwellSec = 0;
 
-        // Count-up helper for numeric values
         function animateValue(id, end, duration, isFloat = false) {
-            const obj = document.getElementById(id);
-            if (!obj) return;
+            const obj = document.getElementById(id); if (!obj) return;
             const start = lastValues[id] || 0;
-            if (start === end) {
-                if (isFloat) obj.textContent = `${end.toFixed(1)}%`;
-                else obj.textContent = end.toLocaleString();
-                return;
-            }
-            
+            if (start === end) { obj.textContent = isFloat ? `${end.toFixed(1)}%` : end.toLocaleString(); return; }
             let startTimestamp = null;
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const ease = progress * (2 - progress); // Ease out quad
+                const ease = progress * (2 - progress);
                 const current = ease * (end - start) + start;
-                
-                if (isFloat) {
-                    obj.textContent = `${current.toFixed(1)}%`;
-                } else {
-                    obj.textContent = Math.floor(current).toLocaleString();
-                }
-                
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                } else {
-                    lastValues[id] = end;
-                }
+                obj.textContent = isFloat ? `${current.toFixed(1)}%` : Math.floor(current).toLocaleString();
+                if (progress < 1) window.requestAnimationFrame(step); else lastValues[id] = end;
             };
             window.requestAnimationFrame(step);
         }
 
-        // Count-up helper for average dwell time
         function animateDwellTime(endSec, duration) {
-            const obj = document.getElementById("kpi-dwell");
-            if (!obj) return;
+            const obj = document.getElementById("kpi-dwell"); if (!obj) return;
             const startSec = lastDwellSec;
-            if (startSec === endSec) {
-                const min = Math.floor(endSec / 60);
-                const sec = Math.round(endSec % 60);
-                obj.textContent = `${min}m ${sec}s`;
-                return;
-            }
-            
+            if (startSec === endSec) { obj.textContent = `${Math.floor(endSec / 60)}m ${Math.round(endSec % 60)}s`; return; }
             let startTimestamp = null;
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
                 const ease = progress * (2 - progress);
                 const current = ease * (endSec - startSec) + startSec;
-                
-                const min = Math.floor(current / 60);
-                const sec = Math.round(current % 60);
-                obj.textContent = `${min}m ${sec}s`;
-                
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                } else {
-                    lastDwellSec = endSec;
-                }
+                obj.textContent = `${Math.floor(current / 60)}m ${Math.round(current % 60)}s`;
+                if (progress < 1) window.requestAnimationFrame(step); else lastDwellSec = endSec;
             };
             window.requestAnimationFrame(step);
         }
 
-        // Initialize Heatmap Grid
         function buildHeatmap() {
-            const grid = document.getElementById("heatmapGrid");
-            grid.innerHTML = "";
+            const grid = document.getElementById("heatmapGrid"); grid.innerHTML = "";
             for (let i = 0; i < 25; i++) {
                 const cell = document.createElement("div");
-                cell.className = "heatmap-cell";
-                cell.id = `cell-${i}`;
-                cell.textContent = "0";
+                cell.className = "heatmap-cell"; cell.id = `cell-${i}`; cell.textContent = "0";
                 grid.appendChild(cell);
             }
         }
         buildHeatmap();
 
-        // Update Heatmap colors based on dummy/live grid updates
         function updateHeatmap(matrix) {
             const flat = matrix.flat();
             for (let i = 0; i < Math.min(flat.length, 25); i++) {
                 const val = flat[i];
                 const cell = document.getElementById(`cell-${i}`);
-                if (cell) {
-                    cell.textContent = val;
-                    // Reset styling classes and animation glows
-                    cell.className = "heatmap-cell";
-                    
-                    // Shade color based on intensity
-                    if (val > 50) {
-                        cell.style.backgroundColor = "rgba(239, 68, 68, 0.4)";
-                        cell.style.color = "#fff";
-                        cell.style.borderColor = "rgba(239, 68, 68, 0.5)";
-                        cell.style.boxShadow = "inset 0 0 12px rgba(239, 68, 68, 0.2)";
-                        cell.classList.add("active-glow");
-                    } else if (val > 20) {
-                        cell.style.backgroundColor = "rgba(245, 158, 11, 0.3)";
-                        cell.style.color = "#fff";
-                        cell.style.borderColor = "rgba(245, 158, 11, 0.4)";
-                        cell.style.boxShadow = "inset 0 0 10px rgba(245, 158, 11, 0.15)";
-                    } else if (val > 5) {
-                        cell.style.backgroundColor = "rgba(16, 185, 129, 0.25)";
-                        cell.style.color = "#fff";
-                        cell.style.borderColor = "rgba(16, 185, 129, 0.35)";
-                        cell.style.boxShadow = "inset 0 0 8px rgba(16, 185, 129, 0.1)";
-                    } else {
-                        cell.style.backgroundColor = "rgba(255, 255, 255, 0.015)";
-                        cell.style.color = "var(--text-muted)";
-                        cell.style.borderColor = "rgba(255, 255, 255, 0.03)";
-                        cell.style.boxShadow = "none";
-                    }
+                if (!cell) continue;
+                cell.textContent = val;
+                cell.className = "heatmap-cell";
+                if (val > 50) {
+                    cell.style.cssText = `background:rgba(255,79,109,0.35);color:#fff;border-color:rgba(255,79,109,0.55);box-shadow:inset 0 0 16px rgba(255,79,109,0.25),0 0 10px rgba(255,79,109,0.2);`;
+                    cell.classList.add("hot");
+                } else if (val > 20) {
+                    cell.style.cssText = `background:rgba(255,184,48,0.28);color:#fff;border-color:rgba(255,184,48,0.45);box-shadow:inset 0 0 12px rgba(255,184,48,0.18);`;
+                } else if (val > 5) {
+                    cell.style.cssText = `background:rgba(0,255,195,0.2);color:#fff;border-color:rgba(0,255,195,0.35);box-shadow:inset 0 0 10px rgba(0,255,195,0.12);`;
+                } else {
+                    cell.style.cssText = ``;
                 }
             }
         }
 
-        // Initialize Funnel Chart with gradients and smooth animations
         function initFunnelChart() {
             const ctx = document.getElementById('funnelChart').getContext('2d');
-            
-            // Create nice gradient fills
-            const gradientPurple = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientPurple.addColorStop(0, 'rgba(124, 58, 237, 0.7)');
-            gradientPurple.addColorStop(1, 'rgba(124, 58, 237, 0.05)');
-
-            const gradientBlue = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.7)');
-            gradientBlue.addColorStop(1, 'rgba(59, 130, 246, 0.05)');
-
-            const gradientAmber = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientAmber.addColorStop(0, 'rgba(245, 158, 11, 0.7)');
-            gradientAmber.addColorStop(1, 'rgba(245, 158, 11, 0.05)');
-
-            const gradientGreen = ctx.createLinearGradient(0, 0, 0, 300);
-            gradientGreen.addColorStop(0, 'rgba(16, 185, 129, 0.7)');
-            gradientGreen.addColorStop(1, 'rgba(16, 185, 129, 0.05)');
-
             funnelChartObj = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -702,61 +1239,36 @@
                     datasets: [{
                         label: 'Visitors',
                         data: [0, 0, 0, 0],
-                        backgroundColor: [
-                            gradientPurple,
-                            gradientBlue,
-                            gradientAmber,
-                            gradientGreen
-                        ],
-                        borderColor: [
-                            '#7c3aed', '#3b82f6', '#f59e0b', '#10b981'
-                        ],
+                        backgroundColor: ['rgba(0,255,195,0.22)', 'rgba(177,108,255,0.22)', 'rgba(255,184,48,0.22)', 'rgba(0,255,195,0.32)'],
+                        borderColor: ['rgba(0,255,195,1)', 'rgba(177,108,255,1)', 'rgba(255,184,48,1)', 'rgba(0,255,195,1)'],
                         borderWidth: 1.5,
                         borderRadius: 8,
-                        hoverBorderWidth: 2.5
+                        hoverBackgroundColor: ['rgba(0,255,195,0.38)', 'rgba(177,108,255,0.38)', 'rgba(255,184,48,0.38)', 'rgba(0,255,195,0.48)'],
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: {
-                        duration: 800,
-                        easing: 'easeOutQuart'
-                    },
+                    responsive: true, maintainAspectRatio: false,
+                    animation: { duration: 900, easing: 'easeOutQuart' },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
-                            ticks: { 
-                                color: '#9ca3af',
-                                font: {
-                                    family: 'Plus Jakarta Sans',
-                                    size: 11
-                                }
-                            }
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: { color: '#5a6480', font: { family: "'DM Mono',monospace", size: 10 } }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { 
-                                color: '#9ca3af',
-                                font: {
-                                    family: 'Plus Jakarta Sans',
-                                    size: 11,
-                                    weight: '600'
-                                }
-                            }
+                            ticks: { color: '#9aa4be', font: { family: "'DM Mono',monospace", size: 10, weight: '500' } }
                         }
                     },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: 'rgba(19, 23, 34, 0.95)',
-                            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
-                            bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
-                            borderColor: 'rgba(255, 255, 255, 0.08)',
-                            borderWidth: 1,
-                            padding: 10,
-                            displayColors: false
+                            backgroundColor: 'rgba(7,9,18,0.97)',
+                            titleFont: { family: "'Syne',sans-serif", size: 12, weight: 'bold' },
+                            bodyFont: { family: "'DM Mono',monospace", size: 11 },
+                            borderColor: 'rgba(0,255,195,0.3)',
+                            borderWidth: 1, padding: 10, displayColors: false,
+                            titleColor: '#f0f4ff', bodyColor: '#9aa4be'
                         }
                     }
                 }
@@ -764,170 +1276,147 @@
         }
         initFunnelChart();
 
-        // Connect WebSocket
         function connectWS() {
             const ws = new WebSocket(wsUrl);
-
             ws.onopen = () => {
                 statusDot.className = "status-dot connected";
-                statusText.textContent = "Server Online";
+                statusText.textContent = "Online";
+                wsConnectedAt = Date.now();
+                eventStream.innerHTML = `
+                    <div class="feed-item" style="border-color:rgba(0,255,195,0.25)">
+                        <div class="feed-item-header">
+                            <span class="feed-item-title">Stream Online</span>
+                            <span class="feed-tag tag-entry">SYS</span>
+                        </div>
+                        <div class="feed-body">Real-time connection established. Listening for visitor events...</div>
+                    </div>`;
                 fetchInitialData();
             };
-
+            ws.onerror = () => { statusDot.className = "status-dot"; statusText.textContent = "Error"; };
             ws.onclose = () => {
-                statusDot.className = "status-dot";
-                statusText.textContent = "Server Offline (Reconnecting...)";
+                statusDot.className = "status-dot"; statusText.textContent = "Reconnecting...";
+                const item = document.createElement("div");
+                item.className = "feed-item anomaly-item";
+                item.innerHTML = `
+                    <div class="feed-item-header">
+                        <span class="feed-item-title">Stream Offline</span>
+                        <span class="feed-tag tag-exit">DISC</span>
+                    </div>
+                    <div class="feed-body">Disconnected. Reconnecting in 3s...</div>`;
+                eventStream.insertBefore(item, eventStream.firstChild);
+                if (eventStream.children.length > 20) eventStream.removeChild(eventStream.lastChild);
                 setTimeout(connectWS, 3000);
             };
-
             ws.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
                 if (msg.type === "event") {
                     addEventToStream(msg.data);
+                    eventsProcessed++;
+                    document.getElementById('sys-events').textContent = eventsProcessed.toLocaleString();
                     debounceFetch();
                 } else if (msg.type === "anomaly") {
                     addAnomalyToStream(msg.data);
+                    anomaliesFlagged++;
+                    document.getElementById('sys-anomalies').textContent = anomaliesFlagged;
                 }
             };
         }
 
-        // Debounce requests to prevent flooding the backend
         let fetchTimeout = null;
-        function debounceFetch() {
-            clearTimeout(fetchTimeout);
-            fetchTimeout = setTimeout(fetchInitialData, 1000);
-        }
+        function debounceFetch() { clearTimeout(fetchTimeout); fetchTimeout = setTimeout(fetchInitialData, 1000); }
 
-        // Fetch metrics via HTTP REST and apply animations
         async function fetchInitialData() {
             try {
-                // KPIs
                 const metricsRes = await fetch(`${httpUrl}/metrics`);
                 if (metricsRes.ok) {
                     const data = await metricsRes.json();
-                    
                     animateValue("kpi-visitors", data.unique_visitors, 800);
                     animateValue("kpi-conversion", data.conversion_rate * 100, 800, true);
                     animateDwellTime(data.avg_dwell_sec, 800);
                     animateValue("kpi-queue", data.current_queue_depth, 800);
-                    
                     const queueStatus = document.getElementById("kpi-queue-status");
                     if (data.current_queue_depth > 8) {
-                        queueStatus.innerHTML = "<span style='color: var(--accent-danger);'>▲ High Congestion Alert</span>";
+                        queueStatus.className = "kpi-trend down";
+                        queueStatus.textContent = "▲ High Congestion";
                     } else {
-                        queueStatus.innerHTML = "<span style='color: var(--accent-success);'>✓ Normal Operations</span>";
+                        queueStatus.className = "kpi-trend neutral";
+                        queueStatus.textContent = "Normal Operations";
                     }
                 }
-
-                // Funnel
                 const funnelRes = await fetch(`${httpUrl}/funnel`);
                 if (funnelRes.ok) {
                     const data = await funnelRes.json();
-                    const counts = data.steps.map(s => s.count);
-                    funnelChartObj.data.datasets[0].data = counts;
+                    funnelChartObj.data.datasets[0].data = data.steps.map(s => s.count);
                     funnelChartObj.update();
                 }
-
-                // Heatmap
                 const heatmapRes = await fetch(`${httpUrl}/heatmap`);
                 if (heatmapRes.ok) {
                     const data = await heatmapRes.json();
                     if (data.zones && data.zones.length > 0) {
-                        const gridResolution = data.grid_resolution || 5;
-                        const combinedMatrix = Array(gridResolution).fill(0).map(() => Array(gridResolution).fill(0));
-                        data.zones.forEach(zone => {
-                            const matrix = zone.density_matrix;
-                            for (let r = 0; r < Math.min(matrix.length, gridResolution); r++) {
-                                for (let c = 0; c < Math.min(matrix[r].length, gridResolution); c++) {
-                                    combinedMatrix[r][c] += matrix[r][c];
-                                }
-                            }
+                        const gr = data.grid_resolution || 5;
+                        const mat = Array(gr).fill(0).map(() => Array(gr).fill(0));
+                        data.zones.forEach(z => {
+                            z.density_matrix.forEach((row, r) => {
+                                row.forEach((v, c) => { if (r < gr && c < gr) mat[r][c] += v; });
+                            });
                         });
-                        updateHeatmap(combinedMatrix);
+                        updateHeatmap(mat);
                     }
                 }
-
-                // Anomalies
                 const anomalyRes = await fetch(`${httpUrl}/anomalies`);
                 if (anomalyRes.ok) {
                     const data = await anomalyRes.json();
                     anomalyStream.innerHTML = "";
-                    if (data.anomalies.length === 0) {
+                    if (!data.anomalies.length) {
                         anomalyStream.innerHTML = `
                             <div class="feed-item">
                                 <div class="feed-item-header">
-                                    <span>System Check Clean</span>
+                                    <span class="feed-item-title">System Check Clean</span>
                                     <span class="feed-tag tag-entry">OK</span>
                                 </div>
-                                <div>No anomalies currently reported on the sales floor.</div>
+                                <div class="feed-body">No anomalies currently reported on the sales floor.</div>
                             </div>`;
                     } else {
-                        data.anomalies.forEach(a => {
-                            addAnomalyToStream({
-                                type: a.type,
-                                severity: a.severity,
-                                description: a.description,
-                                suggested_action: a.suggested_action
-                            });
-                        });
+                        data.anomalies.forEach(a => addAnomalyToStream({ type: a.type, severity: a.severity, description: a.description, suggested_action: a.suggested_action }));
                     }
                 }
-
-            } catch (e) {
-                console.error("Failed to fetch initial operational data:", e);
-            }
+            } catch (e) { console.error("Fetch error:", e); }
         }
 
-        // Add event to Stream DOM with transition animations
         function addEventToStream(ev) {
-            const item = document.createElement("div");
-            item.className = "feed-item";
-            
+            const item = document.createElement("div"); item.className = "feed-item";
             let tagClass = "tag-dwell";
             if (ev.event_type === "ENTRY") tagClass = "tag-entry";
             if (ev.event_type === "EXIT") tagClass = "tag-exit";
             if (ev.event_type.includes("QUEUE")) tagClass = "tag-anomaly";
-
-            const timeStr = new Date(ev.timestamp).toLocaleTimeString();
-
+            const timeStr = new Date(ev.timestamp).toLocaleTimeString('en-GB', { hour12: false });
             item.innerHTML = `
                 <div class="feed-item-header">
-                    <span>Visitor ID ${ev.visitor_id.substring(0, 8)} — ${ev.event_type}</span>
-                    <span class="feed-tag ${tagClass}">${ev.event_type.slice(0,5)}</span>
+                    <span class="feed-item-title">ID ${ev.visitor_id.substring(0, 8)} — ${ev.event_type}</span>
+                    <span class="feed-tag ${tagClass}">${ev.event_type.slice(0, 5)}</span>
                 </div>
-                <div>Occurred at ${timeStr}. Status processed by analytics pipeline.</div>
-            `;
-            
+                <div class="feed-body">${timeStr} · Pipeline processed</div>`;
             eventStream.insertBefore(item, eventStream.firstChild);
-            if (eventStream.children.length > 20) {
-                eventStream.removeChild(eventStream.lastChild);
-            }
+            if (eventStream.children.length > 20) eventStream.removeChild(eventStream.lastChild);
         }
 
-        // Add anomaly to Stream DOM with transition animations
         function addAnomalyToStream(anom) {
-            const item = document.createElement("div");
-            item.className = "feed-item";
-            item.style.borderLeft = `4px solid var(--accent-danger)`;
-
+            const item = document.createElement("div"); item.className = "feed-item anomaly-item";
             item.innerHTML = `
-                <div class="feed-item-header" style="color: var(--accent-danger)">
-                    <span>⚠ ${anom.type} [${anom.severity}]</span>
-                    <span class="feed-tag tag-exit">Alert</span>
+                <div class="feed-item-header">
+                    <span class="feed-item-title">⚠ ${anom.type} [${anom.severity}]</span>
+                    <span class="feed-tag tag-anomaly">Alert</span>
                 </div>
-                <div style="font-weight: 500; margin-top: 0.2rem;">${anom.description}</div>
-                <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.2rem;">Action: ${anom.suggested_action}</div>
-            `;
-            
+                <div class="feed-body" style="color:var(--text-2)">${anom.description}</div>
+                <div class="feed-body">→ ${anom.suggested_action}</div>`;
             anomalyStream.insertBefore(item, anomalyStream.firstChild);
-            if (anomalyStream.children.length > 10) {
-                anomalyStream.removeChild(anomalyStream.lastChild);
-            }
+            if (anomalyStream.children.length > 10) anomalyStream.removeChild(anomalyStream.lastChild);
         }
 
-        // Start connection
         connectWS();
-
+        fetchInitialData();
+        setInterval(fetchInitialData, 10000);
     </script>
 </body>
+
 </html>
