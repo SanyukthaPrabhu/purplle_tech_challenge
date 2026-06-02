@@ -12,17 +12,20 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-primary: #0a0c10;
-            --bg-secondary: #131722;
-            --bg-card: rgba(30, 35, 48, 0.4);
-            --accent-primary: #7c3aed;
-            --accent-success: #10b981;
-            --accent-warning: #f59e0b;
-            --accent-danger: #ef4444;
+            --bg-primary: #06070a;
+            --bg-secondary: rgba(13, 16, 27, 0.6);
+            --bg-card: rgba(22, 28, 45, 0.45);
+            --accent-primary: hsl(263, 80%, 62%);
+            --accent-primary-glow: rgba(124, 58, 237, 0.15);
+            --accent-success: hsl(158, 80%, 40%);
+            --accent-warning: hsl(38, 92%, 50%);
+            --accent-danger: hsl(358, 80%, 60%);
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --border-color: rgba(255, 255, 255, 0.05);
+            --border-glow: rgba(124, 58, 237, 0.1);
+            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            --glass-blur: 24px;
         }
 
         * {
@@ -34,6 +37,9 @@
 
         body {
             background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(124, 58, 237, 0.04) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
             color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
@@ -43,15 +49,18 @@
 
         /* ── Header ── */
         header {
-            background-color: var(--bg-secondary);
+            background: rgba(10, 12, 19, 0.6);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
             border-bottom: 1px solid var(--border-color);
-            padding: 1.2rem 2rem;
+            padding: 1.2rem 2.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
         }
 
         .logo-section {
@@ -67,6 +76,14 @@
             padding: 0.4rem 0.8rem;
             border-radius: 8px;
             font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+            animation: pulse-badge 2s infinite alternate;
+        }
+
+        @keyframes pulse-badge {
+            0% { box-shadow: 0 0 10px rgba(124, 58, 237, 0.3); }
+            100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.6); }
         }
 
         .logo-title {
@@ -80,27 +97,46 @@
         .connection-status {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            background: rgba(255, 255, 255, 0.04);
+            gap: 0.8rem;
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 1.2rem;
             border-radius: 20px;
             font-size: 0.85rem;
-            font-weight: 500;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             background-color: var(--accent-danger);
-            box-shadow: 0 0 8px var(--accent-danger);
+            position: relative;
+            display: inline-block;
             transition: all 0.3s ease;
+        }
+
+        .status-dot::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: inherit;
+            border-radius: 50%;
+            animation: pulse-ring 1.8s cubic-bezier(0.24, 0, 0.38, 1) infinite;
         }
 
         .status-dot.connected {
             background-color: var(--accent-success);
-            box-shadow: 0 0 8px var(--accent-success);
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { opacity: 0.5; }
+            100% { transform: scale(2.5); opacity: 0; }
         }
 
         /* ── Main Layout ── */
@@ -118,20 +154,35 @@
         /* ── KPIs Card Group ── */
         .kpi-card {
             background: var(--bg-card);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 1.5rem;
+            border-radius: 20px;
+            padding: 1.6rem;
             box-shadow: var(--card-shadow);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(130deg, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
+            pointer-events: none;
         }
 
         .kpi-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            border-color: rgba(124, 58, 237, 0.35);
+            box-shadow: 0 12px 40px 0 rgba(124, 58, 237, 0.12), var(--card-shadow);
         }
 
         .kpi-header {
@@ -146,10 +197,11 @@
         }
 
         .kpi-value {
-            font-size: 2.2rem;
+            font-size: 2.4rem;
             font-weight: 700;
-            margin: 1rem 0 0.5rem 0;
+            margin: 1.2rem 0 0.6rem 0;
             color: #fff;
+            letter-spacing: -0.02em;
         }
 
         .kpi-footer {
@@ -158,6 +210,7 @@
             display: flex;
             align-items: center;
             gap: 0.3rem;
+            font-weight: 500;
         }
 
         .kpi-footer.negative {
@@ -168,23 +221,31 @@
         .chart-box {
             grid-column: span 2;
             background: var(--bg-card);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
             border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 1.5rem;
+            border-radius: 24px;
+            padding: 1.8rem;
             box-shadow: var(--card-shadow);
-            min-height: 350px;
+            min-height: 380px;
             display: flex;
             flex-direction: column;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .chart-box:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.45);
         }
 
         .chart-header {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 1.1rem;
             margin-bottom: 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            letter-spacing: -0.01em;
         }
 
         .chart-container {
@@ -198,23 +259,31 @@
         .feed-box {
             grid-column: span 1;
             background: var(--bg-card);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
             border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 1.5rem;
+            border-radius: 24px;
+            padding: 1.8rem;
             box-shadow: var(--card-shadow);
-            max-height: 450px;
+            max-height: 480px;
             display: flex;
             flex-direction: column;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .feed-box:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.45);
         }
 
         .feed-header {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 1.1rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            letter-spacing: -0.01em;
         }
 
         .feed-list {
@@ -227,24 +296,38 @@
         }
 
         .feed-list::-webkit-scrollbar {
-            width: 4px;
+            width: 5px;
+        }
+
+        .feed-list::-webkit-scrollbar-track {
+            background: transparent;
         }
 
         .feed-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+        }
+
+        .feed-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .feed-item {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.01);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 0.8rem;
+            border-radius: 12px;
+            padding: 0.9rem 1.1rem;
             font-size: 0.85rem;
             display: flex;
             flex-direction: column;
-            gap: 0.3rem;
-            animation: slideIn 0.3s ease;
+            gap: 0.4rem;
+            animation: slideInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: all 0.2s ease;
+        }
+
+        .feed-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.12);
         }
 
         .feed-item-header {
@@ -254,10 +337,12 @@
         }
 
         .feed-tag {
-            font-size: 0.75rem;
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .tag-entry { background: rgba(16, 185, 129, 0.15); color: var(--accent-success); }
@@ -269,25 +354,42 @@
         .heatmap-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 0.5rem;
+            gap: 0.6rem;
             width: 100%;
-            height: 250px;
+            height: 280px;
         }
 
         .heatmap-cell {
-            background-color: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
             color: var(--text-muted);
-            transition: all 0.3s ease;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
+        .heatmap-cell:hover {
+            transform: scale(1.05);
+            z-index: 2;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .heatmap-cell.active-glow {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px currentColor; }
+            50% { box-shadow: 0 0 15px currentColor; }
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -446,10 +548,81 @@
         const eventStream = document.getElementById("eventStream");
         const anomalyStream = document.getElementById("anomalyStream");
         
-        // Charts
+        // Charts & State
         let funnelChartObj = null;
+        let lastValues = {
+            "kpi-visitors": 0,
+            "kpi-conversion": 0,
+            "kpi-queue": 0
+        };
+        let lastDwellSec = 0;
 
-        // Initialize Heatmap
+        // Count-up helper for numeric values
+        function animateValue(id, end, duration, isFloat = false) {
+            const obj = document.getElementById(id);
+            if (!obj) return;
+            const start = lastValues[id] || 0;
+            if (start === end) {
+                if (isFloat) obj.textContent = `${end.toFixed(1)}%`;
+                else obj.textContent = end.toLocaleString();
+                return;
+            }
+            
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const ease = progress * (2 - progress); // Ease out quad
+                const current = ease * (end - start) + start;
+                
+                if (isFloat) {
+                    obj.textContent = `${current.toFixed(1)}%`;
+                } else {
+                    obj.textContent = Math.floor(current).toLocaleString();
+                }
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    lastValues[id] = end;
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Count-up helper for average dwell time
+        function animateDwellTime(endSec, duration) {
+            const obj = document.getElementById("kpi-dwell");
+            if (!obj) return;
+            const startSec = lastDwellSec;
+            if (startSec === endSec) {
+                const min = Math.floor(endSec / 60);
+                const sec = Math.round(endSec % 60);
+                obj.textContent = `${min}m ${sec}s`;
+                return;
+            }
+            
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const ease = progress * (2 - progress);
+                const current = ease * (endSec - startSec) + startSec;
+                
+                const min = Math.floor(current / 60);
+                const sec = Math.round(current % 60);
+                obj.textContent = `${min}m ${sec}s`;
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    lastDwellSec = endSec;
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Initialize Heatmap Grid
         function buildHeatmap() {
             const grid = document.getElementById("heatmapGrid");
             grid.innerHTML = "";
@@ -465,34 +638,63 @@
 
         // Update Heatmap colors based on dummy/live grid updates
         function updateHeatmap(matrix) {
-            let idx = 0;
             const flat = matrix.flat();
             for (let i = 0; i < Math.min(flat.length, 25); i++) {
                 const val = flat[i];
                 const cell = document.getElementById(`cell-${i}`);
                 if (cell) {
                     cell.textContent = val;
+                    // Reset styling classes and animation glows
+                    cell.className = "heatmap-cell";
+                    
                     // Shade color based on intensity
                     if (val > 50) {
-                        cell.style.backgroundColor = "rgba(239, 68, 68, 0.6)"; // Red
+                        cell.style.backgroundColor = "rgba(239, 68, 68, 0.4)";
                         cell.style.color = "#fff";
+                        cell.style.borderColor = "rgba(239, 68, 68, 0.5)";
+                        cell.style.boxShadow = "inset 0 0 12px rgba(239, 68, 68, 0.2)";
+                        cell.classList.add("active-glow");
                     } else if (val > 20) {
-                        cell.style.backgroundColor = "rgba(245, 158, 11, 0.5)"; // Yellow
+                        cell.style.backgroundColor = "rgba(245, 158, 11, 0.3)";
                         cell.style.color = "#fff";
+                        cell.style.borderColor = "rgba(245, 158, 11, 0.4)";
+                        cell.style.boxShadow = "inset 0 0 10px rgba(245, 158, 11, 0.15)";
                     } else if (val > 5) {
-                        cell.style.backgroundColor = "rgba(16, 185, 129, 0.4)"; // Green
+                        cell.style.backgroundColor = "rgba(16, 185, 129, 0.25)";
                         cell.style.color = "#fff";
+                        cell.style.borderColor = "rgba(16, 185, 129, 0.35)";
+                        cell.style.boxShadow = "inset 0 0 8px rgba(16, 185, 129, 0.1)";
                     } else {
-                        cell.style.backgroundColor = "rgba(255, 255, 255, 0.02)";
+                        cell.style.backgroundColor = "rgba(255, 255, 255, 0.015)";
                         cell.style.color = "var(--text-muted)";
+                        cell.style.borderColor = "rgba(255, 255, 255, 0.03)";
+                        cell.style.boxShadow = "none";
                     }
                 }
             }
         }
 
-        // Initialize Funnel Chart
+        // Initialize Funnel Chart with gradients and smooth animations
         function initFunnelChart() {
             const ctx = document.getElementById('funnelChart').getContext('2d');
+            
+            // Create nice gradient fills
+            const gradientPurple = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientPurple.addColorStop(0, 'rgba(124, 58, 237, 0.7)');
+            gradientPurple.addColorStop(1, 'rgba(124, 58, 237, 0.05)');
+
+            const gradientBlue = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.7)');
+            gradientBlue.addColorStop(1, 'rgba(59, 130, 246, 0.05)');
+
+            const gradientAmber = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientAmber.addColorStop(0, 'rgba(245, 158, 11, 0.7)');
+            gradientAmber.addColorStop(1, 'rgba(245, 158, 11, 0.05)');
+
+            const gradientGreen = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientGreen.addColorStop(0, 'rgba(16, 185, 129, 0.7)');
+            gradientGreen.addColorStop(1, 'rgba(16, 185, 129, 0.05)');
+
             funnelChartObj = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -501,33 +703,61 @@
                         label: 'Visitors',
                         data: [0, 0, 0, 0],
                         backgroundColor: [
-                            'rgba(124, 58, 237, 0.6)', // Purple
-                            'rgba(59, 130, 246, 0.6)',  // Blue
-                            'rgba(245, 158, 11, 0.6)',  // Amber
-                            'rgba(16, 185, 129, 0.6)'   // Emerald
+                            gradientPurple,
+                            gradientBlue,
+                            gradientAmber,
+                            gradientGreen
                         ],
                         borderColor: [
                             '#7c3aed', '#3b82f6', '#f59e0b', '#10b981'
                         ],
-                        borderWidth: 1
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        hoverBorderWidth: 2.5
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 800,
+                        easing: 'easeOutQuart'
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#9ca3af' }
+                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                            ticks: { 
+                                color: '#9ca3af',
+                                font: {
+                                    family: 'Plus Jakarta Sans',
+                                    size: 11
+                                }
+                            }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { color: '#9ca3af' }
+                            ticks: { 
+                                color: '#9ca3af',
+                                font: {
+                                    family: 'Plus Jakarta Sans',
+                                    size: 11,
+                                    weight: '600'
+                                }
+                            }
                         }
                     },
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(19, 23, 34, 0.95)',
+                            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
+                            bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                            borderColor: 'rgba(255, 255, 255, 0.08)',
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false
+                        }
                     }
                 }
             });
@@ -554,7 +784,6 @@
                 const msg = JSON.parse(event.data);
                 if (msg.type === "event") {
                     addEventToStream(msg.data);
-                    // Dynamically request fresh KPIs/Funnels on new events to keep UI updated
                     debounceFetch();
                 } else if (msg.type === "anomaly") {
                     addAnomalyToStream(msg.data);
@@ -569,21 +798,19 @@
             fetchTimeout = setTimeout(fetchInitialData, 1000);
         }
 
-        // Fetch metrics via HTTP REST
+        // Fetch metrics via HTTP REST and apply animations
         async function fetchInitialData() {
             try {
                 // KPIs
                 const metricsRes = await fetch(`${httpUrl}/metrics`);
                 if (metricsRes.ok) {
                     const data = await metricsRes.json();
-                    document.getElementById("kpi-visitors").textContent = data.unique_visitors;
-                    document.getElementById("kpi-conversion").textContent = `${(data.conversion_rate * 100).toFixed(1)}%`;
                     
-                    const min = Math.floor(data.avg_dwell_sec / 60);
-                    const sec = Math.round(data.avg_dwell_sec % 60);
-                    document.getElementById("kpi-dwell").textContent = `${min}m ${sec}s`;
+                    animateValue("kpi-visitors", data.unique_visitors, 800);
+                    animateValue("kpi-conversion", data.conversion_rate * 100, 800, true);
+                    animateDwellTime(data.avg_dwell_sec, 800);
+                    animateValue("kpi-queue", data.current_queue_depth, 800);
                     
-                    document.getElementById("kpi-queue").textContent = data.current_queue_depth;
                     const queueStatus = document.getElementById("kpi-queue-status");
                     if (data.current_queue_depth > 8) {
                         queueStatus.innerHTML = "<span style='color: var(--accent-danger);'>▲ High Congestion Alert</span>";
@@ -606,7 +833,6 @@
                 if (heatmapRes.ok) {
                     const data = await heatmapRes.json();
                     if (data.zones && data.zones.length > 0) {
-                        // Aggregate density matrices from all zones to show full store occupancy
                         const gridResolution = data.grid_resolution || 5;
                         const combinedMatrix = Array(gridResolution).fill(0).map(() => Array(gridResolution).fill(0));
                         data.zones.forEach(zone => {
@@ -652,7 +878,7 @@
             }
         }
 
-        // Add event to Stream DOM
+        // Add event to Stream DOM with transition animations
         function addEventToStream(ev) {
             const item = document.createElement("div");
             item.className = "feed-item";
@@ -666,7 +892,7 @@
 
             item.innerHTML = `
                 <div class="feed-item-header">
-                    <span>Visitor ID ${ev.visitor_id} — ${ev.event_type}</span>
+                    <span>Visitor ID ${ev.visitor_id.substring(0, 8)} — ${ev.event_type}</span>
                     <span class="feed-tag ${tagClass}">${ev.event_type.slice(0,5)}</span>
                 </div>
                 <div>Occurred at ${timeStr}. Status processed by analytics pipeline.</div>
@@ -678,7 +904,7 @@
             }
         }
 
-        // Add anomaly to Stream DOM
+        // Add anomaly to Stream DOM with transition animations
         function addAnomalyToStream(anom) {
             const item = document.createElement("div");
             item.className = "feed-item";
