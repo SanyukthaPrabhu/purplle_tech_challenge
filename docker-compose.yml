@@ -33,6 +33,7 @@ services:
       LOG_LEVEL: "INFO"
     volumes:
       - ./dashboard:/app/dashboard:ro
+      - ./detection:/app/detection:ro
     depends_on:
       postgres:
         condition: service_healthy
