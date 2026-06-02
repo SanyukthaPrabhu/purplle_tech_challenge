@@ -34,6 +34,7 @@ services:
     volumes:
       - ./dashboard:/app/dashboard:ro
       - ./detection:/app/detection:ro
+      - ./Brigade_Bangalore_10_April_26 (1)bc6219c.csv:/app/Brigade_Bangalore_10_April_26 (1)bc6219c.csv:ro
     depends_on:
       postgres:
         condition: service_healthy
